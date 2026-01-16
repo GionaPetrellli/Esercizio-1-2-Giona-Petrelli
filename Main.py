@@ -5,8 +5,7 @@ from Service.Email_Service import EmailService
 
 app = FastAPI()
 
-# Questo comando DEVE essere dopo l'import di EmailService o Email_Model
-# altrimenti SQLAlchemy "non sa" quali tabelle deve creare.
+
 Base.metadata.create_all(bind=engine)
 
 service = EmailService()
