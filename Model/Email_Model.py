@@ -1,13 +1,12 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.sql import func
 from Repo.Email_Db import Base
 
 
-class Dati(Base):
-    __tablename__ = "email_logs"
-    id = Column(Integer, primary_key=True, index=True)
+class EmailLog(Base):
+    __tablename__ = "sendmails"
 
+    id = Column(Integer, primary_key=True)
     emailDestinatario = Column(String)
-    emailType = Column(String)
-    titoloLibro = Column(String)
-    dataInvio = Column(String)
-    nomeUtente = Column(String)
+    emailtype = Column(String)
+    data_invio = Column(DateTime(timezone=True), server_default=func.now())

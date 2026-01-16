@@ -1,25 +1,17 @@
 from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
+from Repo.Email_Db import get_db, engine, Base
 from Dto.Email_Dto import EmailRequest
-from Service.Email_Service import Email_Service
-from Repo.Email_Db import db as SessionLocal, engine, Base
-
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
+from Service.Email_Service import EmailService
 
 app = FastAPI()
-email_Service = Email_Service()
+
+# Questo comando DEVE essere dopo l'import di EmailService o Email_Model
+# altrimenti SQLAlchemy "non sa" quali tabelle deve creare.
+Base.metadata.create_all(bind=engine)
+
+service = EmailService()
 
 
-def get_db():
-    database = SessionLocal()
-    try:
-        yield database
-    finally:
-        database.close()
-
-
-@app.post("/api/internal/emails/send/v1")
-def inviaEmail(richiesta: EmailRequest, db: Session = Depends(get_db)):
-    risultato = email_Service.mandaEmail(richiesta, db)
-    return risultato
+@app.post("/invia")
+async def handle(data: EmailRequest, db=Depends(get_db)):
+    return await service.invia(data, db)

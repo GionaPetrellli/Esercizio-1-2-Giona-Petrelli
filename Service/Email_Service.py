@@ -1,29 +1,26 @@
-from Dto.Email_Dto import EmailRequest
-from Model.Email_Model import Dati
-from sqlalchemy.orm import Session
+from fastapi_mail import FastMail, MessageSchema, MessageType
+from Repo.Email_Db import EmailRepository, conf
 
 
-class Email_Service:
-    def mandaEmail(self, richiesta: EmailRequest, db: Session):
-        if richiesta.emailType == "RESERVE":
-            messaggio = f"Conferma Prenotazione per il libro: {richiesta.titoloLibro}"
-        else:
-            richiesta.emailType == "RETURN"
-        messaggio = f" Restituzione libro: {richiesta.titoloLibro}"
+class EmailService:
+    def __init__(self):
+        self.repo = EmailRepository()
 
-        nuovo_record = Dati(
-            emailDestinatario=richiesta.emailDestinatario,
-            emailType=richiesta.emailType,
-            titoloLibro=richiesta.titoloLibro,
-            dataInvio=richiesta.dataInvio,
-        )
+    async def invia(self, data, db):
+        try:
 
-        db.add(nuovo_record)
-        db.commit()
-        db.refresh(nuovo_record)
+            message = MessageSchema(
+                subject="Test funzionamento",
+                recipients=[data.emailDestinatario],
+                body="Email di prova, se ti arriva sei il prescelto",
+                subtype=MessageType.plain,
+            )
 
-        return {
-            "status": "success",
-            "message": messaggio,
-            "id_database": nuovo_record.id,
-        }
+            invioMail = FastMail(conf)
+            await invioMail.send_message(message)
+            data.emailtype = "inviata"
+        except Exception as errore:
+            print(f"Errore mail: {errore}")
+            data.emailtype = "non inviata"
+
+        return self.repo.save_log(db, data.fields())
